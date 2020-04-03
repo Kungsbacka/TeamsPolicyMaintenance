@@ -30,7 +30,7 @@ foreach ($mapping in $Script:Config.PolicyMapping) {
     }
 }
 
-foreach ($csUser in (Get-CsOnlineUser -ResultSize Unlimited)) {
+foreach ($csUser in (Get-CsOnlineUser -ResultSize Unlimited -WarningAction 'SilentlyContinue')) {
     $teamsAppPermissionPolicy = $Script:Config.DefaultPolicy.TeamsAppPermissionPolicy
     $teamsAppSetupPolicy = $Script:Config.DefaultPolicy.TeamsAppSetupPolicy
     $policy = $policyMapping[$csUser.UserPrincipalName]
