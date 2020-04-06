@@ -1,6 +1,7 @@
 ﻿$Script:Config = @{
     TeamsUser = 'TeamsAdmin@tenant.microsoftonline.com'
     TeamsPassword = '<Encrypted password>'
+    LogPath = 'C:\Temp'
     DefaultPolicy = @{
         TeamsAppPermissionPolicy = $null
         TeamsAppSetupPolicy = $null
