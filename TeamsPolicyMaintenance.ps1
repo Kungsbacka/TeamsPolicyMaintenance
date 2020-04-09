@@ -1,6 +1,4 @@
-﻿$ErrorActionPreference = 'Stop'
-
-Import-Module -Name 'SkypeOnlineConnector'
+﻿Import-Module -Name 'SkypeOnlineConnector'
 
 . "$PSScriptRoot\Config.ps1"
 
@@ -59,7 +57,6 @@ foreach ($mapping in $Script:Config.PolicyMapping) {
 }
 
 foreach ($csUser in (Get-CsOnlineUser -ResultSize Unlimited -WarningAction 'SilentlyContinue')) {
-    Write-Log -Target $csUser.UserPrincipalName -Message 'Processing user'
     $teamsAppPermissionPolicy = $Script:Config.DefaultPolicy.TeamsAppPermissionPolicy
     $teamsAppSetupPolicy = $Script:Config.DefaultPolicy.TeamsAppSetupPolicy
     $policy = $policyMapping[$csUser.UserPrincipalName]
@@ -77,19 +74,28 @@ foreach ($csUser in (Get-CsOnlineUser -ResultSize Unlimited -WarningAction 'Sile
     }
     if ($csUser.TeamsAppPermissionPolicy -ne $teamsAppPermissionPolicyName) {
         try {
-            Grant-CsTeamsAppPermissionPolicy -Identity $csUser.Identity -PolicyName $teamsAppPermissionPolicy
+            Grant-CsTeamsAppPermissionPolicy -Identity $csUser.Identity -PolicyName $teamsAppPermissionPolicy -ErrorAction 'Stop'
         }
         catch {
-            Write-Log -Target $csUser.UserPrincipalName -Message ('Error: failed to change Teams App Permission Policy from "' + $csUser.TeamsAppPermissionPolicy + '" to "' + $teamsAppPermissionPolicyName + '"')
+            # Skip users without license
+            if ($_.ToString() -notlike 'Management object not found*') {
+                Write-Log -Target $csUser.UserPrincipalName -Message "Error: failed to change Teams App Permission Policy: $($_.ToString())"
+            }
+            # If we fail to set the permission policy, we don't try to set the setup policy
+            continue
         }
         Write-Log -Target $csUser.UserPrincipalName -Message ('Changed Teams App Permission Policy from "' + $csUser.TeamsAppPermissionPolicy + '" to "' + $teamsAppPermissionPolicyName + '"')
     }
     if ($csUser.TeamsAppSetupPolicy -ne $teamsAppSetupPolicyName) {
         try {
-            Grant-CsTeamsAppSetupPolicy -Identity $csUser.Identity -PolicyName $teamsAppSetupPolicy
+            Grant-CsTeamsAppSetupPolicy -Identity $csUser.Identity -PolicyName $teamsAppSetupPolicy -ErrorAction 'Stop'
         }
         catch {
-            Write-Log -Target $csUser.UserPrincipalName -Message ('Error: failed to change Teams App Setup Policy from "' + $csUser.TeamsAppSetupPolicy + '" to "' + $teamsAppSetupPolicyName + '"')
+            # Skip users without license
+            if ($_.ToString() -notlike 'Management object not found*') {
+                Write-Log -Target $csUser.UserPrincipalName -Message "Error: failed to change Teams App Setup Policy: $($_.ToString())"
+            }
+            continue
         }
         Write-Log -Target $csUser.UserPrincipalName -Message ('Changed Teams App Setup Policy from "' + $csUser.TeamsAppSetupPolicy + '" to "' + $teamsAppSetupPolicyName + '"')
     }
