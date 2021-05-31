@@ -1,4 +1,4 @@
-﻿Import-Module -Name 'SkypeOnlineConnector'
+﻿Import-Module -Name 'MicrosoftTeams'
 
 . "$PSScriptRoot\Config.ps1"
 
@@ -33,19 +33,7 @@ $credential = New-Object -TypeName 'System.Management.Automation.PSCredential' -
     $Script:Config.TeamsPassword | ConvertTo-SecureString
 )
 
-if (-not $session) {
-    $session = New-CsOnlineSession -Credential $credential
-    $params = @{
-        Session = $session
-        AllowClobber = $true
-        CommandName = @(
-            'Get-CsOnlineUser'
-            'Grant-CsTeamsAppPermissionPolicy'
-            'Grant-CsTeamsAppSetupPolicy'
-        )
-    }
-    $null = Import-PSSession @params
-}
+Connect-MicrosoftTeams -Credential $credential
 
 $policyMapping = @{}
 foreach ($mapping in $Script:Config.PolicyMapping) {
