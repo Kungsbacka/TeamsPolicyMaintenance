@@ -44,7 +44,7 @@ foreach ($mapping in $Script:Config.PolicyMapping) {
     }
 }
 
-foreach ($csUser in (Get-CsOnlineUser -ResultSize Unlimited -WarningAction 'SilentlyContinue')) {
+foreach ($csUser in (Get-CsOnlineUser -WarningAction 'SilentlyContinue')) {
     $teamsAppPermissionPolicy = $Script:Config.DefaultPolicy.TeamsAppPermissionPolicy
     $teamsAppSetupPolicy = $Script:Config.DefaultPolicy.TeamsAppSetupPolicy
     $policy = $policyMapping[$csUser.UserPrincipalName]
@@ -60,7 +60,7 @@ foreach ($csUser in (Get-CsOnlineUser -ResultSize Unlimited -WarningAction 'Sile
     if ($teamsAppSetupPolicyName -eq '') {
         $teamsAppSetupPolicyName = $null
     }
-    if ($csUser.TeamsAppPermissionPolicy -ne $teamsAppPermissionPolicyName) {
+    if ($csUser.TeamsAppPermissionPolicy.Name -ne $teamsAppPermissionPolicyName) {
         try {
             Grant-CsTeamsAppPermissionPolicy -Identity $csUser.Identity -PolicyName $teamsAppPermissionPolicy -ErrorAction 'Stop'
         }
@@ -74,7 +74,7 @@ foreach ($csUser in (Get-CsOnlineUser -ResultSize Unlimited -WarningAction 'Sile
         }
         Write-Log -Target $csUser.UserPrincipalName -Message ('Changed Teams App Permission Policy from "' + $csUser.TeamsAppPermissionPolicy + '" to "' + $teamsAppPermissionPolicyName + '"')
     }
-    if ($csUser.TeamsAppSetupPolicy -ne $teamsAppSetupPolicyName) {
+    if ($csUser.TeamsAppSetupPolicy.Name -ne $teamsAppSetupPolicyName) {
         try {
             Grant-CsTeamsAppSetupPolicy -Identity $csUser.Identity -PolicyName $teamsAppSetupPolicy -ErrorAction 'Stop'
         }
