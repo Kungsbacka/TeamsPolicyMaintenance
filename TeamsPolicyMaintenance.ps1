@@ -45,34 +45,14 @@ foreach ($mapping in $Script:Config.PolicyMapping) {
 }
 
 foreach ($csUser in (Get-CsOnlineUser -WarningAction 'SilentlyContinue')) {
-    $teamsAppPermissionPolicy = $Script:Config.DefaultPolicy.TeamsAppPermissionPolicy
     $teamsAppSetupPolicy = $Script:Config.DefaultPolicy.TeamsAppSetupPolicy
     $policy = $policyMapping[$csUser.UserPrincipalName]
     if ($policy) {
-        $teamsAppPermissionPolicy = $policy.TeamsAppPermissionPolicy
         $teamsAppSetupPolicy = $policy.TeamsAppSetupPolicy
     }
-    $teamsAppPermissionPolicyName = $teamsAppPermissionPolicy -replace '^Tag:', ''
     $teamsAppSetupPolicyName = $teamsAppSetupPolicy -replace '^Tag:', ''
-    if ($teamsAppPermissionPolicyName -eq '') {
-        $teamsAppPermissionPolicyName = $null
-    }
     if ($teamsAppSetupPolicyName -eq '') {
         $teamsAppSetupPolicyName = $null
-    }
-    if ($csUser.TeamsAppPermissionPolicy.Name -ne $teamsAppPermissionPolicyName) {
-        try {
-            Grant-CsTeamsAppPermissionPolicy -Identity $csUser.Identity -PolicyName $teamsAppPermissionPolicy -ErrorAction 'Stop'
-        }
-        catch {
-            # Skip users without license
-            if ($_.ToString() -notlike 'Management object not found*') {
-                Write-Log -Target $csUser.UserPrincipalName -Message "Error: failed to change Teams App Permission Policy: $($_.ToString())"
-            }
-            # If we fail to set the permission policy, we don't try to set the setup policy
-            continue
-        }
-        Write-Log -Target $csUser.UserPrincipalName -Message ('Changed Teams App Permission Policy from "' + $csUser.TeamsAppPermissionPolicy + '" to "' + $teamsAppPermissionPolicyName + '"')
     }
     if ($csUser.TeamsAppSetupPolicy.Name -ne $teamsAppSetupPolicyName) {
         try {
